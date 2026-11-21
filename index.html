@@ -1,0 +1,462 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chuyển đổi Feet khối sang Yard khối</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px #dbeafe;
+    }
+    .cube {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 5px;
+      background: #60a5fa;
+      border: 1px solid white;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+<header class="bg-white border-b shadow-sm">
+  <div class="max-w-5xl mx-auto px-4 py-5">
+    <h1 class="text-2xl md:text-3xl font-bold text-blue-700">
+      Feet khối sang Yard khối
+    </h1>
+    <p class="text-slate-500 mt-1">
+      Công cụ chuyển đổi thể tích ft³ và yd³ miễn phí
+    </p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- Công cụ chuyển đổi -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7 mb-6">
+
+    <h2 class="text-xl font-bold mb-2">Công cụ chuyển đổi thể tích</h2>
+    <p class="text-sm text-slate-500 mb-5">
+      Nhập số lượng và chọn đơn vị để chuyển đổi ngay lập tức.
+    </p>
+
+    <div class="flex flex-wrap gap-2 mb-5 no-print">
+      <button onclick="setExample(27, 'ft3')" class="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm">
+        27 ft³
+      </button>
+      <button onclick="setExample(150, 'ft3')" class="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm">
+        150 ft³
+      </button>
+      <button onclick="setExample(300, 'ft3')" class="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm">
+        300 ft³
+      </button>
+      <button onclick="setExample(5, 'yd3')" class="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm">
+        5 yd³
+      </button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 items-end">
+
+      <div>
+        <label class="block font-semibold text-sm mb-2">
+          Giá trị cần chuyển đổi
+        </label>
+        <input
+          id="amount"
+          type="number"
+          min="0"
+          step="any"
+          value="27"
+          placeholder="Nhập số lượng"
+          class="w-full border border-slate-300 rounded-xl p-3 text-lg"
+        >
+      </div>
+
+      <div>
+        <label class="block font-semibold text-sm mb-2">
+          Đơn vị đầu vào
+        </label>
+        <select id="direction" class="w-full border border-slate-300 rounded-xl p-3 text-lg">
+          <option value="ft3">Feet khối (ft³)</option>
+          <option value="yd3">Yard khối (yd³)</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="flex justify-center my-5">
+      <button
+        onclick="swapUnits()"
+        class="px-5 py-2 rounded-full bg-slate-100 hover:bg-blue-100 text-blue-700 font-semibold no-print"
+      >
+        ⇅ Đổi chiều chuyển đổi
+      </button>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 text-center">
+      <p class="text-sm text-slate-500 mb-2">Kết quả chuyển đổi</p>
+      <div id="result" class="text-3xl md:text-4xl font-bold text-blue-700">
+        1 yd³
+      </div>
+      <p id="resultDescription" class="text-sm text-slate-600 mt-2">
+        27 ft³ = 1 yd³
+      </p>
+      <button
+        onclick="copyResult()"
+        class="mt-4 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 no-print"
+      >
+        Sao chép kết quả
+      </button>
+      <p id="copyMessage" class="text-green-600 text-sm mt-2"></p>
+    </div>
+
+    <p id="error" class="text-red-600 text-sm mt-3 hidden"></p>
+  </section>
+
+  <!-- Tùy chọn đặt mua -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7 mb-6">
+
+    <h2 class="text-xl font-bold mb-2">Ước tính số lượng vật liệu cần mua</h2>
+    <p class="text-sm text-slate-500 mb-5">
+      Thêm tỷ lệ hao hụt và làm tròn số lượng để dễ đặt hàng.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-5">
+
+      <div>
+        <label class="block text-sm font-semibold mb-2">
+          Tỷ lệ hao hụt (%)
+        </label>
+        <input
+          id="waste"
+          type="number"
+          min="0"
+          max="1000"
+          step="any"
+          value="0"
+          class="w-full border border-slate-300 rounded-xl p-3"
+        >
+        <p class="text-xs text-slate-400 mt-1">
+          Có thể nhập 5% hoặc 10% để dự phòng vật liệu.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold mb-2">
+          Làm tròn số lượng đặt mua
+        </label>
+        <select id="increment" class="w-full border border-slate-300 rounded-xl p-3">
+          <option value="none">Không làm tròn</option>
+          <option value="quarter">Làm tròn lên 0,25 yd³</option>
+          <option value="half" selected>Làm tròn lên 0,5 yd³</option>
+          <option value="whole">Làm tròn lên 1 yd³</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button onclick="calculateOrder()" class="mt-5 w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-700">
+      Tính số lượng cần đặt
+    </button>
+
+    <div id="orderSection" class="hidden mt-5 bg-green-50 border border-green-200 rounded-xl p-5">
+      <p class="text-sm text-green-700">Thể tích sau khi cộng hao hụt</p>
+      <p id="adjusted" class="text-2xl font-bold text-green-800 mt-1">0 yd³</p>
+
+      <div class="border-t border-green-200 my-4"></div>
+
+      <p class="text-sm text-green-700">Số lượng đề xuất đặt mua</p>
+      <p id="recommended" class="text-3xl font-bold text-green-800 mt-1">0 yd³</p>
+
+      <p id="orderNote" class="text-xs text-green-700 mt-3"></p>
+    </div>
+
+    <p id="orderError" class="text-red-600 text-sm mt-3 hidden"></p>
+  </section>
+
+  <!-- Minh họa -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7 mb-6">
+    <h2 class="text-xl font-bold mb-2">Vì sao phải chia cho 27?</h2>
+    <p class="text-sm text-slate-600 mb-5">
+      Một yard bằng 3 feet. Vì đây là thể tích ba chiều nên:
+      3 × 3 × 3 = 27 feet khối.
+    </p>
+
+    <div class="max-w-xs mx-auto bg-blue-50 rounded-xl p-5">
+      <div class="grid grid-cols-3 gap-1" id="cubeGrid"></div>
+      <p class="text-center font-bold text-blue-800 mt-4">
+        3 × 3 × 3 = 27 ft³
+      </p>
+      <p class="text-center text-sm text-slate-500 mt-1">
+        Tương đương 1 yd³
+      </p>
+    </div>
+  </section>
+
+  <!-- Công thức -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7 mb-6">
+    <h2 class="text-xl font-bold mb-4">Công thức chuyển đổi</h2>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-blue-50 rounded-xl p-5">
+        <h3 class="font-bold text-blue-800 mb-2">Feet khối → Yard khối</h3>
+        <p class="text-lg font-bold text-blue-700">yd³ = ft³ ÷ 27</p>
+        <p class="text-sm text-slate-600 mt-2">
+          Ví dụ: 150 ÷ 27 = 5,5556 yd³
+        </p>
+      </div>
+
+      <div class="bg-purple-50 rounded-xl p-5">
+        <h3 class="font-bold text-purple-800 mb-2">Yard khối → Feet khối</h3>
+        <p class="text-lg font-bold text-purple-700">ft³ = yd³ × 27</p>
+        <p class="text-sm text-slate-600 mt-2">
+          Ví dụ: 5 × 27 = 135 ft³
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bảng quy đổi -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7 mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+      <div>
+        <h2 class="text-xl font-bold">Bảng quy đổi nhanh</h2>
+        <p class="text-sm text-slate-500 mt-1">
+          Một số giá trị thường gặp.
+        </p>
+      </div>
+      <button onclick="window.print()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm no-print">
+        In bảng
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-center">
+        <thead class="bg-slate-100">
+          <tr>
+            <th class="p-3">Feet khối (ft³)</th>
+            <th class="p-3">Yard khối (yd³)</th>
+          </tr>
+        </thead>
+        <tbody id="conversionTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Hướng dẫn -->
+  <section class="bg-white rounded-2xl shadow-sm p-5 md:p-7">
+    <h2 class="text-xl font-bold mb-3">Hướng dẫn sử dụng</h2>
+    <ol class="list-decimal pl-5 space-y-2 text-sm text-slate-600">
+      <li>Nhập thể tích muốn chuyển đổi.</li>
+      <li>Chọn đơn vị Feet khối hoặc Yard khối.</li>
+      <li>Xem kết quả được tính tự động.</li>
+      <li>Sử dụng nút đổi chiều nếu muốn chuyển đổi ngược lại.</li>
+      <li>Nếu đặt mua vật liệu, nhập thêm tỷ lệ hao hụt.</li>
+      <li>Chọn cách làm tròn và nhấn tính số lượng cần đặt.</li>
+    </ol>
+  </section>
+
+  <footer class="text-center text-sm text-slate-400 py-8">
+    Công cụ chuyển đổi Feet khối sang Yard khối miễn phí
+  </footer>
+
+</main>
+
+<script>
+  const amountInput = document.getElementById("amount");
+  const directionInput = document.getElementById("direction");
+  const resultElement = document.getElementById("result");
+  const descriptionElement = document.getElementById("resultDescription");
+
+  let currentResult = 1;
+  let currentInput = 27;
+  let currentDirection = "ft3";
+
+  function formatNumber(number, decimals = 6) {
+    return Number(number.toFixed(decimals)).toLocaleString("en-US", {
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function calculate() {
+    const amount = Number(amountInput.value);
+    const direction = directionInput.value;
+    const error = document.getElementById("error");
+
+    if (amountInput.value.trim() === "" || !Number.isFinite(amount) || amount < 0) {
+      error.textContent = "Vui lòng nhập một số không âm hợp lệ.";
+      error.classList.remove("hidden");
+      resultElement.textContent = "Chưa có kết quả";
+      descriptionElement.textContent = "";
+      currentResult = 0;
+      return;
+    }
+
+    error.classList.add("hidden");
+
+    currentInput = amount;
+    currentDirection = direction;
+
+    if (direction === "ft3") {
+      currentResult = amount / 27;
+
+      resultElement.textContent = formatNumber(currentResult) + " yd³";
+      descriptionElement.textContent =
+        formatNumber(amount) + " ft³ ÷ 27 = " +
+        formatNumber(currentResult) + " yd³";
+    } else {
+      currentResult = amount * 27;
+
+      resultElement.textContent = formatNumber(currentResult) + " ft³";
+      descriptionElement.textContent =
+        formatNumber(amount) + " yd³ × 27 = " +
+        formatNumber(currentResult) + " ft³";
+    }
+
+    document.getElementById("orderSection").classList.add("hidden");
+    document.getElementById("copyMessage").textContent = "";
+  }
+
+  function swapUnits() {
+    const current = Number(amountInput.value);
+
+    if (amountInput.value.trim() === "" || !Number.isFinite(current) || current < 0) {
+      calculate();
+      return;
+    }
+
+    const oldResult = currentResult;
+
+    directionInput.value = directionInput.value === "ft3" ? "yd3" : "ft3";
+    amountInput.value = oldResult;
+
+    calculate();
+  }
+
+  function setExample(value, direction) {
+    amountInput.value = value;
+    directionInput.value = direction;
+    calculate();
+  }
+
+  function copyResult() {
+    const text = resultElement.textContent;
+
+    if (!text || text === "Chưa có kết quả") return;
+
+    navigator.clipboard.writeText(text).then(function() {
+      document.getElementById("copyMessage").textContent = "Đã sao chép kết quả!";
+    }).catch(function() {
+      document.getElementById("copyMessage").textContent =
+        "Trình duyệt không hỗ trợ sao chép tự động.";
+    });
+  }
+
+  function calculateOrder() {
+    const waste = Number(document.getElementById("waste").value);
+    const increment = document.getElementById("increment").value;
+    const error = document.getElementById("orderError");
+
+    if (document.getElementById("waste").value.trim() === "" ||
+        !Number.isFinite(waste) || waste < 0 || waste > 1000) {
+      error.textContent = "Tỷ lệ hao hụt phải từ 0% đến 1000%.";
+      error.classList.remove("hidden");
+      return;
+    }
+
+    if (!Number.isFinite(currentResult) || currentResult < 0) {
+      error.textContent = "Vui lòng nhập thể tích hợp lệ trước.";
+      error.classList.remove("hidden");
+      return;
+    }
+
+    error.classList.add("hidden");
+
+    // Nếu đầu vào là ft³, đổi kết quả sang yd³ để tính đặt mua.
+    const volumeYards = currentDirection === "ft3"
+      ? currentResult
+      : currentResult / 27;
+
+    const adjusted = volumeYards * (1 + waste / 100);
+
+    const increments = {
+      none: 0,
+      quarter: 0.25,
+      half: 0.5,
+      whole: 1
+    };
+
+    const step = increments[increment];
+    let recommended = adjusted;
+
+    if (step > 0) {
+      recommended = Math.ceil((adjusted - 1e-10) / step) * step;
+    }
+
+    document.getElementById("adjusted").textContent =
+      formatNumber(adjusted) + " yd³";
+
+    document.getElementById("recommended").textContent =
+      formatNumber(recommended) + " yd³";
+
+    document.getElementById("orderNote").textContent =
+      "Thể tích ban đầu: " + formatNumber(volumeYards) +
+      " yd³ · Hao hụt: " + waste + "% · Phần dự phòng: " +
+      formatNumber(adjusted - volumeYards) + " yd³.";
+
+    document.getElementById("orderSection").classList.remove("hidden");
+  }
+
+  function createTable() {
+    const values = [1, 10, 20, 27, 50, 54, 100, 108, 150, 200, 300, 500, 1000];
+    const body = document.getElementById("conversionTable");
+
+    values.forEach(function(value) {
+      const row = document.createElement("tr");
+      row.className = "border-b hover:bg-blue-50 cursor-pointer";
+
+      row.innerHTML = `
+        <td class="p-3 font-semibold">${value} ft³</td>
+        <td class="p-3 text-blue-700">${formatNumber(value / 27)} yd³</td>
+      `;
+
+      row.addEventListener("click", function() {
+        setExample(value, "ft3");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      body.appendChild(row);
+    });
+  }
+
+  function createCube() {
+    const grid = document.getElementById("cubeGrid");
+
+    for (let i = 0; i < 27; i++) {
+      const cube = document.createElement("div");
+      cube.className = "cube";
+      cube.title = "1 ft³";
+      grid.appendChild(cube);
+    }
+  }
+
+  amountInput.addEventListener("input", calculate);
+  directionInput.addEventListener("change", calculate);
+
+  createTable();
+  createCube();
+  calculate();
+</script>
+
+</body>
+</html>
